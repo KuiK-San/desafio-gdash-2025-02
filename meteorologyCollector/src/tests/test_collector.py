@@ -15,8 +15,7 @@ def test_init_loads_env(monkeypatch):
     client = ClimateClient(lat=1, lon=2)
     
     assert client.api_key == "ABC"
-    assert client.api_url == "https://newapi-url.com"
-    
+    assert client.api_url == "https://newapi-url.com"   
     
 def test_init_without_env_api_key(monkeypatch):
     monkeypatch.delenv("CLIMATE_API_KEY", raising=False)
