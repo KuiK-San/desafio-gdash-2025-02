@@ -8,6 +8,10 @@ def env_mock(monkeypatch):
     monkeypatch.setenv("CLIMATE_API_KEY", "API_KEY.CLIMATE")
     monkeypatch.setenv("CLIMATE_API_URL", "https://climate-url.com")
     
+@pytest.fixture
+def sample_api_response():
+    return 
+
 def test_init_loads_env(monkeypatch):
     monkeypatch.setenv("CLIMATE_API_KEY", "ABC")
     monkeypatch.setenv("CLIMATE_API_URL", "https://newapi-url.com")
