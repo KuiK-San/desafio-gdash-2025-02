@@ -1,6 +1,7 @@
 import os
 from urllib.parse import urlencode
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -23,6 +24,8 @@ class ClimateClient:
         if self.units not in ["standard", "metric", "imperial"]:
             raise ValueError("Unit must be metric, imperial or standard")
         
+        self.api_url = self._build_url()
+        
     def _build_url(self):
         params = {
             'lat': self.lat,
@@ -33,3 +36,12 @@ class ClimateClient:
         }
         
         return f"{self.api_url}?{urlencode(params)}"
+    
+    def _fetch(self):
+        response = requests.get(self.api_url)
+        
+        if response.status_code == 200:
+            return response.json()
+        
+        raise RuntimeError("Failed to fetch climate data")
+        
