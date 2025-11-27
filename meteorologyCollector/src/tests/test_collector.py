@@ -1,14 +1,12 @@
 import pytest
 import os
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from app.collector.main import ClimateClient
 
 @pytest.fixture
 def env_mock(monkeypatch):
     monkeypatch.setenv("CLIMATE_API_KEY", "API_KEY.CLIMATE")
     monkeypatch.setenv("CLIMATE_API_URL", "https://climate-url.com")
-    
-    
     
 def test_init_loads_env(monkeypatch):
     monkeypatch.setenv("CLIMATE_API_KEY", "ABC")
@@ -17,7 +15,7 @@ def test_init_loads_env(monkeypatch):
     client = ClimateClient(lat=1, lon=2)
     
     assert client.api_key == "ABC"
-    assert client.api_url == "https://newapi-url.com"   
+    assert client.api_url == "https://newapi-url.com?lat=1&lon=2&appid=ABC&units=metric&lang=pt_br"
   
 def test_init_without_env_api_key(monkeypatch):
     monkeypatch.delenv("CLIMATE_API_KEY", raising=False)
@@ -25,7 +23,6 @@ def test_init_without_env_api_key(monkeypatch):
 
     with pytest.raises(ValueError):
         ClimateClient(lat=1, lon=2)
-
 
 def test_init_without_env_api_url(monkeypatch):
     monkeypatch.setenv("CLIMATE_API_KEY", "AAA")
@@ -55,4 +52,32 @@ def test_build_url_another_unit(env_mock):
 def test_build_url_unit_error(env_mock):
 
     with pytest.raises(ValueError): ClimateClient(lat=10, lon=20, units="errorUnit")
+
+@patch("app.collector.main.requests.get")
+def test_fetch_success(mock_get, env_mock):
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = { "temp": 25 }
     
+    mock_get.return_value = mock_response
+    
+    client = ClimateClient(lat=1, lon=2)
+    data = client._fetch()
+    
+    assert data == { "temp": 25 }
+    
+@patch("app.collector.main.requests.get")
+def test_fetch_error_status(mock_get, env_mock):
+    mock_response = MagicMock()
+    mock_response.status_code = 502
+    mock_response.text = "Internal Server Error"
+    
+    mock_get.return_value = mock_response
+    
+    client = ClimateClient(lat=1, lon=2)
+    
+    with pytest.raises(RuntimeError) as err:
+        client._fetch()
+        
+    assert "Failed to fetch climate data" in str(err.value)
+
