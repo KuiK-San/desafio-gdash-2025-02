@@ -45,3 +45,50 @@ class ClimateClient:
         
         raise RuntimeError("Failed to fetch climate data")
         
+    def getCurrentFiltred(self):
+        data = self._fetch()
+
+        location = {
+            "name": data.get("name"),
+            "country": data.get("sys", {}).get("country"),
+            "coordinates": {
+                "lat": data.get("coord", {}).get("lat"),
+                "lon": data.get("coord", {}).get("lon"),
+            },
+            "timezone": data.get("timezone"),
+        }
+
+        weather = data.get("weather", [{}])[0]
+
+        current = {
+            "weather": {
+                "main": weather.get("main"),
+                "description": weather.get("description"),
+                "icon": weather.get("icon"),
+            },
+            "temperature": {
+                "temp": data.get("main", {}).get("temp"),
+                "feels_like": data.get("main", {}).get("feels_like"),
+                "temp_min": data.get("main", {}).get("temp_min"),
+                "temp_max": data.get("main", {}).get("temp_max"),
+            },
+            "humidity": data.get("main", {}).get("humidity"),
+            "pressure": {
+                "value": data.get("main", {}).get("pressure"),
+                "sea_level": data.get("main", {}).get("sea_level"),
+                "ground_level": data.get("main", {}).get("grnd_level"),
+            },
+            "visibility": data.get("visibility"),
+            "clouds": data.get("clouds", {}).get("all"),
+        }
+
+        astronomical = {
+            "sunrise": data.get("sys", {}).get("sunrise"),
+            "sunset": data.get("sys", {}).get("sunset"),
+        }
+
+        return {
+            "location": location,
+            "current": current,
+            "astronomical": astronomical
+        }
