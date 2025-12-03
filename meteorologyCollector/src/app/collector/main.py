@@ -1,9 +1,12 @@
 import os
+import logging
 from urllib.parse import urlencode
 from dotenv import load_dotenv
 import requests
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class ClimateClient:
     def __init__(self, lat: float, lon: float, units: str = "metric", lang: str = "pt_br"):
@@ -38,14 +41,21 @@ class ClimateClient:
         return f"{self.api_url}?{urlencode(params)}"
     
     def _fetch(self):
+        logger.info(f"Making request to API: {self.api_url.split('?')[0]}...")
         response = requests.get(self.api_url)
         
-        if response.status_code == 200:
-            return response.json()
+        logger.info(f"API response: status_code={response.status_code}")
         
+        if response.status_code == 200:
+            data = response.json()
+            logger.info("API data obtained successfully")
+            return data
+        
+        logger.error(f"Failed to fetch API data: status_code={response.status_code}, response={response.text}")
         raise RuntimeError("Failed to fetch climate data")
         
     def getCurrentFiltred(self):
+        logger.info("Processing API data and filtering relevant information...")
         data = self._fetch()
 
         location = {
@@ -87,8 +97,12 @@ class ClimateClient:
             "sunset": data.get("sys", {}).get("sunset"),
         }
 
-        return {
+        filtered_data = {
             "location": location,
             "current": current,
             "astronomical": astronomical
         }
+        
+        logger.info(f"Filtered data prepared: location={location.get('name')}, temperature={current.get('temperature', {}).get('temp')}°C")
+        
+        return filtered_data

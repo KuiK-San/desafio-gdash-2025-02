@@ -1,9 +1,12 @@
 import os
+import logging
 from dotenv import load_dotenv
 import pika
 import json
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 class MensageSender:
     def __init__(self):
@@ -31,6 +34,8 @@ class MensageSender:
         self.port = int(self.port)
     
     def sendMensage(self, data: dict):
+        logger.info(f"Connecting to RabbitMQ: host={self.host}, port={self.port}, queue={self.queue}")
+        
         credentials = pika.PlainCredentials(self.user, self.password)
         parameters = pika.ConnectionParameters(
             host=self.host,
@@ -41,12 +46,25 @@ class MensageSender:
         connection = pika.BlockingConnection(parameters)
         channel = connection.channel()
         
-        json_message = json.dumps(data)
+        logger.info(f"Declaring queue '{self.queue}'...")
+        channel.queue_declare(queue=self.queue, durable=True)
+        logger.info(f"Queue '{self.queue}' declared successfully")
+        
+        json_message = json.dumps(data, ensure_ascii=False)
+        
+        logger.info(f"Message to be sent (JSON): {json_message}")
+        logger.info(f"Message size: {len(json_message)} bytes")
         
         channel.basic_publish(
             exchange='',
             routing_key=self.queue,
-            body=json_message
+            body=json_message,
+            properties=pika.BasicProperties(
+                delivery_mode=2,  # Makes the message durable
+            )
         )
         
+        logger.info(f"Message published successfully to queue '{self.queue}'")
+        
         connection.close()
+        logger.info("RabbitMQ connection closed")
