@@ -1,4 +1,4 @@
-
+from app.collector.main import ClimateClient
 # TODO: importar bibliotecas
 
 if __name__ == "__main__": 
