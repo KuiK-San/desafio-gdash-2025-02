@@ -1,0 +1,53 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: meteorology-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meteorology-network
+
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meteorology-collector
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      CLIMATE_API_KEY: ${CLIMATE_API_KEY:-your-api-key-here}
+      CLIMATE_API_URL: ${CLIMATE_API_URL:-https://api.openweathermap.org/data/2.5/weather}
+      
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-climate-data}
+
+      LAT: ${LAT:-0}
+      LON: ${LON:-0}
+    volumes:
+      - ./src:/app/src
+    networks:
+      - meteorology-network
+
+volumes:
+  rabbitmq_data:
+    driver: local
+
+networks:
+  meteorology-network:
+    driver: bridge
+
