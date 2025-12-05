@@ -14,6 +14,7 @@
   * [x] JWT_SECRET
   * [x] JWT_EXPIRES
   * [x] DB_URI
+  * [x] BCRYPT_SALT_ROUNDS
 
 ---
 

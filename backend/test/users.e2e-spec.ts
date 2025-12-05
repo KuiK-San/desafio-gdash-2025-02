@@ -2,16 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { MongooseModule } from '@nestjs/mongoose';
+import { MongoInMemory } from './utils/mongo-in-memory.util';
 
 describe('UsersController (e2e)', () => {
     let app: INestApplication;
-    let mongo: MongoMemoryServer;
+    let mongo: MongoInMemory;
 
     beforeAll(async () => {
-        mongo = await MongoMemoryServer.create();
-        const mongoUri = mongo.getUri();
+        mongo = new MongoInMemory();
+        const mongoUri = await mongo.start();
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [
@@ -34,8 +34,8 @@ describe('UsersController (e2e)', () => {
     });
 
     afterAll(async () => {
-        await app.close();
-        await mongo.stop();
+        if (app) await app.close();
+        if (mongo) await mongo.stop();
     });
 
     it('POST /users create an user', async () => {

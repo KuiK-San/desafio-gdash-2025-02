@@ -6,26 +6,27 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) {
-
-    }
+    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
     async create(dto: { name: string; email: string; password: string }) {
-        const exists = await this.userModel.findOne({ email: dto.email })
-        if (exists) throw new ConflictException('email already registred')
+        const exists = await this.userModel.findOne({ email: dto.email });
+        if (exists) throw new ConflictException('Email already registered');
 
-        const user = this.userModel.create({
-            ...dto
-        })
+        const user = await this.userModel.create({
+            ...dto,
+            password: dto.password,
+        });
 
-        return user
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...userWithoutPassword } = user.toObject();
+        return userWithoutPassword;
     }
 
     async findByEmail(email: string) {
-        return this.userModel.findOne({ email })
+        return this.userModel.findOne({ email });
     }
-    
-    async validatePassword(raw: string, hashed: string) {
+
+    validatePassword(raw: string, hashed: string) {
         return bcrypt.compare(raw, hashed);
     }
 }

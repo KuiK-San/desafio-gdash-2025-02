@@ -64,5 +64,4 @@ describe('UsersController', () => {
 
         expect(result).toEqual(expectedUser);
     });
-
 });

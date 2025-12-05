@@ -1,22 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { getModelToken, MongooseModule } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { User, UserSchema } from './schemas/user.schema';
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
+import { MongoInMemory } from '../../test/utils/mongo-in-memory.util';
+import { ConfigModule } from '@nestjs/config';
 
 describe('UsersService', () => {
     let service: UsersService;
     let userModel: Model<User>;
-    let mongo: MongoMemoryServer;
+    let mongo: MongoInMemory;
 
-    beforeEach(async () => {
-        mongo = await MongoMemoryServer.create();
-        const uri = mongo.getUri();
+    beforeAll(async () => {
+        mongo = new MongoInMemory();
+        const uri = await mongo.start();
 
         const module: TestingModule = await Test.createTestingModule({
             imports: [
+                ConfigModule.forRoot({
+                    envFilePath: '.env.test',
+                }),
                 MongooseModule.forRoot(uri),
                 MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
             ],
@@ -47,8 +51,12 @@ describe('UsersService', () => {
             password: 'testpassword',
         });
 
-        expect(user.password).not.toBe('testpassword');
-        expect(await bcrypt.compare('testpassword', user.password)).toBe(true);
+        expect(user.password).toBe('');
+        
+        const userFromDb = await userModel.findOne({ email: 'test@email.com' });
+        expect(userFromDb).toBeDefined();
+        expect(userFromDb!.password).not.toBe('testpassword');
+        expect(await bcrypt.compare('testpassword', userFromDb!.password)).toBe(true);
     });
 
     it('validade duplicate user', async () => {
@@ -81,13 +89,16 @@ describe('UsersService', () => {
     });
 
     it('validate pass with bcrypt', async () => {
-        const created = await service.create({
+        await service.create({
             name: 'User',
             email: 'user@email.com',
             password: 'testpassword',
         });
 
-        const isValid = await service.validatePassword('testpassword', created.password);
+        const userFromDb = await userModel.findOne({ email: 'user@email.com' });
+        expect(userFromDb).toBeDefined();
+        
+        const isValid = await service.validatePassword('testpassword', userFromDb!.password);
 
         expect(isValid).toBe(true);
     });

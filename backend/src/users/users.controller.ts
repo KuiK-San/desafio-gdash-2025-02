@@ -8,6 +8,6 @@ export class UsersController {
 
     @Post('')
     async create(@Body() dto: CreateUserDto) {
-        return this.userService.create(dto)
+        return this.userService.create(dto);
     }
 }
