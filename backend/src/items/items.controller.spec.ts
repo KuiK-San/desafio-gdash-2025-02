@@ -10,10 +10,8 @@ describe('ItemsController - Weather Data', () => {
     const mockItemsService = {
         create: jest.fn(),
         find: jest.fn(),
-        findOne: jest.fn(),
         findByLocation: jest.fn(),
         update: jest.fn(),
-        remove: jest.fn(),
     };
 
     beforeEach(async () => {
@@ -282,49 +280,6 @@ describe('ItemsController - Weather Data', () => {
         });
     });
 
-    describe('findOne', () => {
-        it('should return weather data for specific ID', async () => {
-            const itemId = '507f1f77bcf86cd799439011';
-            const expectedItem = {
-                _id: itemId,
-                location: {
-                    name: 'Berlin',
-                    country: 'DE',
-                    coordinates: { lat: 52.5200, lon: 13.4050 },
-                    timezone: 3600,
-                },
-                current: {
-                    weather: { main: 'Clouds', description: 'scattered clouds', icon: '03d' },
-                    temperature: { temp: 10, feels_like: 8, temp_min: 8, temp_max: 12 },
-                    humidity: 70,
-                    pressure: { value: 1010, sea_level: 1010, ground_level: 1007 },
-                    visibility: 9000,
-                    clouds: 40,
-                },
-                astronomical: { sunrise: 1701847200, sunset: 1701880800 },
-            };
-
-            mockItemsService.findOne.mockResolvedValue(expectedItem);
-
-            const result = await controller.findOne(itemId);
-
-            expect(service.findOne).toHaveBeenCalledTimes(1);
-            expect(service.findOne).toHaveBeenCalledWith(itemId);
-            expect(result).toEqual(expectedItem);
-            expect(result?.location.name).toBe('Berlin');
-        });
-
-        it('should handle not found errors', async () => {
-            const itemId = 'nonexistent';
-            mockItemsService.findOne.mockResolvedValue(null);
-
-            const result = await controller.findOne(itemId);
-
-            expect(result).toBeNull();
-            expect(service.findOne).toHaveBeenCalledWith(itemId);
-        });
-    });
-
     describe('findByLocation', () => {
         it('should find weather data by location name', async () => {
             const locationName = 'Paris';
@@ -355,18 +310,6 @@ describe('ItemsController - Weather Data', () => {
 
             expect(service.findByLocation).toHaveBeenCalledWith(locationName);
             expect(result[0].location.name).toBe('Paris');
-        });
-    });
-
-    describe('remove', () => {
-        it('should remove weather data by ID', async () => {
-            const itemId = '507f1f77bcf86cd799439011';
-            mockItemsService.remove.mockResolvedValue({ deleted: true });
-
-            await controller.remove(itemId);
-
-            expect(service.remove).toHaveBeenCalledTimes(1);
-            expect(service.remove).toHaveBeenCalledWith(itemId);
         });
     });
 });

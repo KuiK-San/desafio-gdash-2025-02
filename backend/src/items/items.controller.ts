@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { CreateItemDto } from './dto/create-item.dto';
 
@@ -16,18 +16,8 @@ export class ItemsController {
         return this.itemsService.find();
     }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return this.itemsService.findOne(id);
-    }
-
     @Get('location/:name')
     async findByLocation(@Param('name') name: string) {
         return this.itemsService.findByLocation(name);
-    }
-
-    @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return this.itemsService.remove(id);
     }
 }

@@ -12,9 +12,7 @@ describe('ItemsService - Weather Data', () => {
     const mockItemModel = {
         create: jest.fn(),
         find: jest.fn(),
-        findById: jest.fn(),
         findByIdAndUpdate: jest.fn(),
-        findByIdAndDelete: jest.fn(),
     };
 
     beforeEach(async () => {

@@ -1,152 +1,80 @@
-## **1. Preparar o ambiente**
 
-* [x] Instalar dependências:
+## 2 — Escrever testes **antes** de implementar (faltarão/irão falhar)
 
-  * [x] `@nestjs/mongoose` e `mongoose`
-  * [x] `@nestjs/passport` e `passport`
-  * [x] `@nestjs/jwt`
-  * [x] `passport-local` (para login)
-  * [x] `bcrypt`
-  * [x] `cookie-parser`
-  * [x] `mongodb-memory-server` (para testes)
-* [x] Configurar `.env` com:
+### Unitários
 
-  * [x] JWT_SECRET
-  * [x] JWT_EXPIRES
-  * [x] DB_URI
-  * [x] BCRYPT_SALT_ROUNDS
+* [ ] `x-source.guard.spec.ts`
 
----
+  * deve permitir quando header `x-source` = `go-worker`
+  * deve recusar (lançar Forbidden) quando header ausente
+  * deve recusar quando header diferente
+* [ ] `items.controller.spec.ts`
 
-# **2. Configuração de Testes (TDD)**
+  * controller chama `itemsService.create` com DTO validado
+  * validação do DTO não é responsabilidade do controller test (mas checar delegação)
+* [ ] `items.service.spec.ts`
 
-* [x] Configurar **MongoDB in-memory** para jest
-* [ ] Criar mock de `JwtService` para testes unitários
-* [ ] Criar helper para testes de integração com Supertest
+  * `create()` deve transformar/validar entrada mínima e chamar repositório
+  * em caso de erro de persistência, propagar/expor erro esperado
+* [ ] `dto` tests (opcional)
 
----
+  * validar que payloads inválidos falham (campos faltando/tipos errados)
+  * validar transformação snake_case ↔ camelCase se necessário
 
-# **3. Criar o módulo de Users (TDD)**
+### E2E
 
-### 🔹 **Testes primeiro**
+* [ ] `items.e2e-spec.ts`
 
-* [x] Deve criar usuário com senha hasheada
-* [x] Deve impedir criação de usuário duplicado
-* [x] Deve retornar usuário por email
-* [x] Deve validar senha com bcrypt
-
-### 🔹 Implementação
-
-* [x] Criar schema User (email + password + name)
-* [x] Criar UsersService com:
-
-  * [x] create()
-  * [x] findByEmail()
-  * [x] validatePassword()
-* [x] Criar UsersController (opcional, se quiser endpoint de registro)
-
-# **4. Criar testes de autenticação (TDD)**
-
-## **4.1. Testes da estratégia LocalStrategy**
-
-* [x] Deve autenticar usuário com email e senha corretos
-* [x] Deve rejeitar credenciais inválidas
-* [x] Deve chamar o UsersService corretamente
-
-## **4.2. Testes do AuthService**
-
-* [x] validateUser() deve retornar o usuário sem senha se credenciais forem válidas
-* [x] validateUser() deve retornar null se inválido
-* [x] login() deve gerar JWT
-* [x] login() deve definir HttpOnly cookie
-
-## **4.3. Testes do AuthController**
-
-* [x] POST /auth/login deve:
-
-  * [x] Autenticar com LocalGuard
-  * [x] Criar cookie com JWT (`httpOnly`, `secure`, `sameSite: 'none'`)
-  * [x] Retornar apenas dados públicos do usuário
-* [x] POST /auth/logout deve limpar cookie
-* [x] GET /auth/me deve retornar usuário baseado no cookie JWT
+  * 403 se header `x-source` ausente/errado (mesmo com auth válida)
+  * 401/403 se autenticação inválida (reaproveitar comportamento de auth existente)
+  * 400 se body inválido (mesmo com header e auth corretos)
+  * 201 (ou 200) e body com id/campo salvo se tudo OK (header + auth + body válido)
+  * testar persistência real usando mongodb-memory-server ou util `MongoInMemory` do projeto
 
 ---
 
-# **5. Implementação — Auth Module**
+## 3 — Implementação mínima (faça para tornar testes verdes)
 
-## **5.1. Criar LocalStrategy**
-
-* [ ] Fazer login usando email em vez de username
-* [ ] Usar AuthService.validateUser()
-
-## **5.2. Criar AuthService**
-
-* [ ] validateUser()
-* [ ] login()
-
-  * [ ] Gerar JWT
-  * [ ] Configurar cookie:
-
-    ```ts
-    res.cookie('auth', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-    })
-    ```
-
-## **5.3. Criar AuthController**
-
-* [ ] POST /auth/login usando `@UseGuards(AuthGuard('local'))`
-* [ ] POST /auth/logout (limpar cookie)
-* [ ] GET /auth/me (usar JwtGuard + extrair do cookie)
+* [ ] Criar `XSourceGuard` (`CanActivate`) que verifica `req.headers['x-source'] === 'go-worker'` e retorna/lança Forbidden.
+* [ ] Registrar/usar `XSourceGuard` na rota: `@UseGuards(AuthGuard, XSourceGuard)` (AuthGuard já existente).
+* [ ] Criar DTO `CreateItemDto` com `class-validator`/`class-transformer` para refletir o payload.
+* [ ] Aplicar `ValidationPipe` (local na rota ou global) com `transform: true, whitelist: true`.
+* [ ] Criar `ItemsController` com `@Post()` que injeta `ItemsService` e chama `create(dto)`.
+* [ ] Criar `ItemsService.create(dto)` que persiste (via model/repository) e retorna o registro salvo.
+* [ ] Criar schema/model mínimo (Mongoose/TypeORM) conforme decisão de persistência.
 
 ---
 
-# **6. Configurar Passport + JWT**
+## 4 — Testes de integração / infra para e2e
 
-* [ ] Registrar LocalStrategy
-* [ ] Criar JwtStrategy com extração via cookie:
-
-  ```ts
-  jwtFromRequest: ExtractJwt.fromExtractors([
-      (req) => req?.cookies?.auth,
-  ])
-  ```
-* [ ] Criar JwtModule com env:
-
-  * JWT_SECRET
-  * JWT_EXPIRES_IN
+* [ ] Configurar mongo em memória (mongodb-memory-server) ou reutilizar `MongoInMemory`.
+* [ ] Helper de autenticação para e2e: gerar token válido ou chamar rota de login no `beforeAll`.
+* [ ] Setup/teardown para limpar DB entre testes.
 
 ---
 
-# **7. Configurar Cookies e Credentials**
+## 5 — Casos de borda / qualidade
 
-* [ ] Em `main.ts`:
-
-  ```ts
-  app.enableCors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-  });
-
-  app.use(cookieParser());
-  ```
-* [ ] No front:
-
-  ```js
-  axios.post('/auth/login', data, { withCredentials: true })
-  ```
+* [ ] Validar formatos numéricos (lat/lon floats), timestamps (inteiros).
+* [ ] Rejeitar campos extras se necessário (`whitelist: true`).
+* [ ] Testar entradas extremas (valores nulos, arrays faltando, números fora de range).
+* [ ] Log de requisições inválidas (opcional).
 
 ---
 
-# **8. Testes E2E com Supertest**
+## 6 — CI / Execução
 
-* [ ] Teste login:
-
-  * [ ] Enviar email + senha
-  * [ ] Confirmar que retorna Set-Cookie
-* [ ] Teste acesso autenticado usando cookie retornado
-* [ ] Testar logout limpando cookie
+* [ ] Incluir `npm run test` / `npm run test:e2e` no pipeline.
+* [ ] Rodar testes em ambiente isolado (setup do DB em CI).
 
 ---
+
+## 7 — Documentação / manutenção
+
+* [ ] Documentar header obrigatório (`x-source: go-worker`) na API (Swagger README).
+* [ ] Escrever README curto no módulo `items` explicando contrato do body e pré-requisitos (auth, header).
+* [ ] Adicionar testes de contrato (opcional) para garantir compatibilidade com produtor (go-worker).
+
+---
+
+Se quiser eu **reduzo/transformo** essa TODO list em um checklist em formato Markdown pronto pra colar no seu board (ou em um arquivo `TODO.md`) — só avisar — mas parei aqui porque você pediu *apenas a todo*. Quer que eu gere esse `TODO.md` pronto?

@@ -17,21 +17,12 @@ export class ItemsService {
         return this.itemModel.find().exec();
     }
 
-    async findOne(id: string): Promise<Item | null> {
-        return this.itemModel.findById(id).exec();
-    }
-
     async findByLocation(locationName: string): Promise<Item[]> {
         return this.itemModel.find({ 'location.name': locationName }).exec();
     }
 
     async update(id: string, updateItemDto: Partial<CreateItemDto>): Promise<Item | null> {
         return this.itemModel.findByIdAndUpdate(id, updateItemDto, { new: true }).exec();
-    }
-
-    async remove(id: string): Promise<{ deleted: boolean }> {
-        await this.itemModel.findByIdAndDelete(id).exec();
-        return { deleted: true };
     }
 }
 

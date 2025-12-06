@@ -20,6 +20,25 @@ services:
     networks:
       - mongo_network
 
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: npm run start:dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - ./.env
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - mongo_network
+
 volumes:
   mongo_data:
     driver: local
