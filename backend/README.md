@@ -43,32 +43,32 @@
   * [x] create()
   * [x] findByEmail()
   * [x] validatePassword()
-* [ ] Criar UsersController (opcional, se quiser endpoint de registro)
+* [x] Criar UsersController (opcional, se quiser endpoint de registro)
 
 # **4. Criar testes de autenticação (TDD)**
 
 ## **4.1. Testes da estratégia LocalStrategy**
 
-* [ ] Deve autenticar usuário com email e senha corretos
-* [ ] Deve rejeitar credenciais inválidas
-* [ ] Deve chamar o UsersService corretamente
+* [x] Deve autenticar usuário com email e senha corretos
+* [x] Deve rejeitar credenciais inválidas
+* [x] Deve chamar o UsersService corretamente
 
 ## **4.2. Testes do AuthService**
 
-* [ ] validateUser() deve retornar o usuário sem senha se credenciais forem válidas
-* [ ] validateUser() deve retornar null se inválido
-* [ ] login() deve gerar JWT
-* [ ] login() deve definir HttpOnly cookie
+* [x] validateUser() deve retornar o usuário sem senha se credenciais forem válidas
+* [x] validateUser() deve retornar null se inválido
+* [x] login() deve gerar JWT
+* [x] login() deve definir HttpOnly cookie
 
 ## **4.3. Testes do AuthController**
 
-* [ ] POST /auth/login deve:
+* [x] POST /auth/login deve:
 
-  * [ ] Autenticar com LocalGuard
-  * [ ] Criar cookie com JWT (`httpOnly`, `secure`, `sameSite: 'none'`)
-  * [ ] Retornar apenas dados públicos do usuário
-* [ ] POST /auth/logout deve limpar cookie
-* [ ] GET /auth/me deve retornar usuário baseado no cookie JWT
+  * [x] Autenticar com LocalGuard
+  * [x] Criar cookie com JWT (`httpOnly`, `secure`, `sameSite: 'none'`)
+  * [x] Retornar apenas dados públicos do usuário
+* [x] POST /auth/logout deve limpar cookie
+* [x] GET /auth/me deve retornar usuário baseado no cookie JWT
 
 ---
 

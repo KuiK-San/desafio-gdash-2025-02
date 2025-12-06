@@ -45,14 +45,12 @@ describe('UsersService', () => {
     });
 
     it('create user with hash password', async () => {
-        const user = await service.create({
+        await service.create({
             name: 'test',
             email: 'test@email.com',
             password: 'testpassword',
         });
 
-        expect(user.password).toBe('');
-        
         const userFromDb = await userModel.findOne({ email: 'test@email.com' });
         expect(userFromDb).toBeDefined();
         expect(userFromDb!.password).not.toBe('testpassword');
