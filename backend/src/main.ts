@@ -2,21 +2,27 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import { UsersService } from './users/users.service';
+import { seedAdminUser } from './seed';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    
+
     app.enableCors({
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
         credentials: true,
     });
-    
+
     app.use(cookieParser());
-    
+
+    const userService = app.get(UsersService);
+
+    await seedAdminUser(userService);
+
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
-            transform: true
+            transform: true,
         })
     )
     await app.listen(process.env.PORT ?? 3000);
