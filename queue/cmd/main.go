@@ -12,7 +12,8 @@ import (
 func main() {
 
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)	}
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
 
 	queueConsumer := queue.NewConsumer()
 	apiClient := api.NewClient()
@@ -37,14 +38,13 @@ func run(queueConsumer *queue.Consumer, apiClient *api.Client) error {
 		}
 
 		for _, item := range items {
-			
+
 			if err := apiClient.Send(item); err != nil {
 				log.Printf("Error sending item to API: %v", err)
 				continue
 			}
 		}
 
-
-		time.Sleep(1 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }

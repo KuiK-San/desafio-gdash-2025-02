@@ -5,8 +5,8 @@ python main.py
 
 while true; do
     echo "-------------------------------------------"
-    echo "Aguardando 1 hora até a próxima execução..."
-    sleep 3600
+    echo "Aguardando 5 segundos até a próxima execução..."
+    sleep 5
     echo "Executando coletor de dados meteorológicos..."
     echo "-------------------------------------------"
     python main.py
