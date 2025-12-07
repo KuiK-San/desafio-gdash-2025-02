@@ -12,5 +12,6 @@ import { MongooseModule } from '@nestjs/mongoose';
     ],
     controllers: [DashboardController],
     providers: [DashboardService],
+    exports: [DashboardService],
 })
 export class DashboardModule { }

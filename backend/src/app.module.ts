@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ItemsModule } from './items/items.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { InsightModule } from './insight/insight.module';
 
 @Module({
     imports: [
@@ -34,6 +35,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
         AuthModule,
         ItemsModule,
         DashboardModule,
+        InsightModule,
     ],
     controllers: [AppController],
     providers: [AppService],
