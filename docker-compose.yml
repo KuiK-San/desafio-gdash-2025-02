@@ -5,20 +5,35 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672" 
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    env_file:
+      - ./rabbitmq/.env
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
     networks:
-      - gdash-network
+      - gdash-etl
     restart: unless-stopped
+
+  mongo:
+    image: mongo:latest
+    container_name: gdash-mongodb
+    ports:
+      - "27017:27017"  
+    env_file:
+      - ./mongodb/.env
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand({ ping: 1 })"]
+      interval: 10s
+      retries: 5
+    networks:
+      - gdash-database
+    restart: unless-stopped
+
   collector:
     build:
       context: ./meteorologyCollector
@@ -37,7 +52,7 @@ services:
     volumes:
       - ./meteorologyCollector/src:/app/src
     networks:
-      - gdash-network
+      - gdash-etl
     restart: unless-stopped
 
   worker:
@@ -56,14 +71,40 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
     networks:
-      - gdash-network
+      - gdash-etl
     restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gdash-backend
+    ports:
+      - "3000:3000"
+    env_file: 
+      - ./backend/.env
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      - MONGO_HOST=mongo
+    networks:
+      - gdash-etl
+      - gdash-database
+    restart: unless-stopped
+    
+    
 
 volumes:
   rabbitmq_data:
     driver: local
+  mongo_data:
+    driver: local
 
 networks:
-  gdash-network:
+  gdash-etl:
+    driver: bridge
+  
+  gdash-database:
     driver: bridge
 
