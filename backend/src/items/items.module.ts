@@ -15,4 +15,3 @@ import { Item, ItemSchema } from './schemas/item.schema';
     exports: [ItemsService],
 })
 export class ItemsModule {}
-
