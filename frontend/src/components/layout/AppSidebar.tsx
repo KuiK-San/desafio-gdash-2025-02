@@ -40,7 +40,7 @@ export function AppSidebar() {
 
     return (
         <Sidebar>
-            <SidebarHeader className="p-4 bg-primary text-lg font-semibold flex flex-row items-center">
+            <SidebarHeader className="p-4 bg-primary text-white text-lg font-semibold flex flex-row items-center">
                 <img src="https://gdash.io/wp-content/uploads/2025/02/logo.gdash_.white_.png" className="max-w-full h-auto max-h-10"/>
                 <span>Dashboard</span>
 
