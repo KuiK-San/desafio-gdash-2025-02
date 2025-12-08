@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '@/store/hooks'
-import { useLoginMutation } from '@/store/api'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useLoginMutation, useGetMeQuery } from '@/store/api'
 import { setUser } from '@/store/authSlice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,10 +12,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export function Login() {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth)
     const [login, { isLoading, error }] = useLoginMutation()
+    
+    const { data } = useGetMeQuery(undefined, {
+        skip: !!user && isAuthenticated,
+    })
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+
+    useEffect(() => {
+        if (data) {
+            dispatch(setUser(data.user))
+        }
+    }, [data, dispatch])
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard', { replace: true })
+        }
+    }, [isAuthenticated, navigate])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()

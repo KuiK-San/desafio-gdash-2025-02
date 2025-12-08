@@ -3,6 +3,7 @@ import { useSelector } from "react-redux"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useGetTemperatureHistoryQuery } from "@/store/api"
 import type { RootState } from "@/store/store"
+import type { TemperatureHistoryItem } from "@/store/types/dashboard"
 import { Thermometer } from "lucide-react"
 import {
     LineChart,
@@ -23,21 +24,6 @@ interface ChartData {
     tempMax: number
     feelsLike: number
     tempAvg: number
-}
-
-interface TemperatureHistoryItem {
-    date: string
-    tempMin: number
-    tempMax: number
-    feelsLike: number
-    humidity: number
-    weather: {
-        main: string
-        description: string
-        icon: string
-    }
-    sunrise: number
-    sunset: number
 }
 
 function TemperatureHistorySkeleton() {
@@ -111,30 +97,33 @@ export default function TemperatureHistoryChart() {
         return data
             .map((item: TemperatureHistoryItem) => {
                 try {
-                    const dateStr = item.date
+                    const dateStr = item.createdAt || item.updatedAt
                     if (!dateStr) return null
 
                     const date = new Date(dateStr)
                     
-                    // Validar se a data é válida
                     if (isNaN(date.getTime())) {
                         console.warn('Data inválida:', dateStr)
                         return null
                     }
 
-                    const { tempMin, tempMax, feelsLike } = item
+                    const tempMin = item.current?.temperature?.temp_min ?? 0
+                    const tempMax = item.current?.temperature?.temp_max ?? 0
+                    const feelsLike = item.current?.temperature?.feels_like ?? 0
 
                     // Validar se os valores são números
                     if (
                         typeof tempMin !== 'number' ||
                         typeof tempMax !== 'number' ||
-                        typeof feelsLike !== 'number'
+                        typeof feelsLike !== 'number' ||
+                        isNaN(tempMin) ||
+                        isNaN(tempMax) ||
+                        isNaN(feelsLike)
                     ) {
                         console.warn('Valores de temperatura inválidos:', item)
                         return null
                     }
 
-                    // Calcular temperatura média
                     const tempAvg = (tempMin + tempMax) / 2
 
                     return {

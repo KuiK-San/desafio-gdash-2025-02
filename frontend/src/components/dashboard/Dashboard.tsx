@@ -10,9 +10,7 @@ export default function Dashboard() {
             <DateFilter />
             <div className="flex gap-2">
                 <CurrentTemperature />
-                <InsightCard
-                    content="Teste"
-                />
+                <InsightCard />
             </div>
             <TemperatureHistoryChart />
         </div>

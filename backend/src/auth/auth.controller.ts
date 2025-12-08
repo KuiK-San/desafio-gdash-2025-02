@@ -11,13 +11,13 @@ export class AuthController {
     @Post('login')
     async login(@Request() req, @Res() res: Response) {
         const result = await this.authService.login(req.user, res);
-        return res.status(201).json(req.user);
+        return res.status(201).json({ user: req.user });
     }
 
     @UseGuards(AuthGuard('jwt'))
     @Get('me')
     async getProfile(@Request() req) {
-        return req.user;
+        return { user: req.user };
     }
 
     @Post('logout')

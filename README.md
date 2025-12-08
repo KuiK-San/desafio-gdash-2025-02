@@ -298,6 +298,139 @@ A forma de aplicar IA é livre. Algumas ideias possíveis:
 
 ---
 
+## 🐳 Como Rodar o Projeto Completo com Docker Compose
+
+### Pré-requisitos
+
+- **Docker** (versão 20.10 ou superior)
+- **Docker Compose** (versão 2.0 ou superior)
+- **Chave de API do OpenWeatherMap** (obtenha em [openweathermap.org](https://openweathermap.org/api))
+
+### Passo a Passo
+
+1. **Configurar Variáveis de Ambiente:**
+
+   Configure os arquivos `.env` em cada diretório do projeto:
+
+   ```bash
+   # Backend
+   cp backend/.env.example backend/.env
+   # Edite backend/.env com suas configurações
+
+   # Frontend
+   cp frontend/.env.example frontend/.env
+   # Edite frontend/.env se necessário
+
+   # Meteorology Collector
+   cp meteorologyCollector/.env.example meteorologyCollector/.env
+   # Edite meteorologyCollector/.env com sua chave da API OpenWeatherMap
+
+   # Queue Worker
+   cp queue/.env.example queue/.env
+   # Edite queue/.env com as configurações da API
+
+   # MongoDB
+   cp mongodb/.env.example mongodb/.env
+   # Edite mongodb/.env com credenciais do MongoDB
+
+   # RabbitMQ
+   cp rabbitmq/.env.example rabbitmq/.env
+   # Edite rabbitmq/.env se necessário
+   ```
+
+2. **Construir e iniciar todos os serviços:**
+
+   ```bash
+   docker-compose up -d --build
+   ```
+
+   Isso irá subir todos os serviços:
+   - MongoDB (banco de dados)
+   - RabbitMQ (message broker)
+   - Collector (coletor Python de dados meteorológicos)
+   - Worker (worker Go que processa a fila)
+   - Backend (API NestJS)
+   - Frontend (aplicação React)
+
+3. **Verificar status dos containers:**
+
+   ```bash
+   docker-compose ps
+   ```
+
+4. **Visualizar logs:**
+
+   ```bash
+   # Todos os serviços
+   docker-compose logs -f
+
+   # Serviço específico
+   docker-compose logs -f backend
+   docker-compose logs -f frontend
+   docker-compose logs -f collector
+   docker-compose logs -f worker
+   ```
+
+5. **Parar os serviços:**
+
+   ```bash
+   docker-compose down
+   ```
+
+6. **Parar e remover volumes (limpar dados):**
+
+   ```bash
+   docker-compose down -v
+   ```
+
+### URLs Principais
+
+Após iniciar os serviços, você terá acesso a:
+
+- **Frontend:** `http://localhost`
+- **Backend API:** `http://localhost:3000`
+- **RabbitMQ Management UI:** `http://localhost:15672`
+  - Usuário: `guest`
+  - Senha: `guest`
+- **MongoDB:** `mongodb://localhost:27017`
+
+### Usuário Padrão
+
+Ao iniciar a aplicação, um usuário padrão é criado automaticamente:
+
+- **Email:** `admin@example.com` (configurável via `DEFAULT_USER_EMAIL` no `.env` do backend)
+- **Senha:** `123456` (configurável via `DEFAULT_USER_PASSWORD` no `.env` do backend)
+
+### Documentação Individual
+
+Cada serviço possui sua própria documentação detalhada:
+
+- [Backend README](./backend/README.md)
+- [Frontend README](./frontend/README.md)
+- [Meteorology Collector README](./meteorologyCollector/README.md)
+- [Queue Worker README](./queue/README.md)
+- [MongoDB README](./mongodb/README.md)
+- [RabbitMQ README](./rabbitmq/README.md)
+
+### Troubleshooting
+
+**Problema:** Algum serviço não inicia
+- Verifique os logs: `docker-compose logs [nome-do-serviço]`
+- Confirme se todas as variáveis de ambiente estão configuradas
+- Verifique se as portas não estão em uso
+
+**Problema:** Frontend não consegue conectar ao backend
+- Verifique se o backend está rodando: `docker-compose ps`
+- Confirme a URL da API no `.env` do frontend
+- Verifique os logs do backend para erros
+
+**Problema:** Worker não processa mensagens
+- Verifique se o RabbitMQ está rodando
+- Confirme se o collector está enviando mensagens
+- Verifique os logs do worker: `docker-compose logs -f worker`
+
+---
+
 ## 📹 Vídeo obrigatório
 
 Grave um vídeo de **até 5 minutos** explicando:

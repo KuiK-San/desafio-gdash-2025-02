@@ -32,7 +32,7 @@ export default function InsightCard() {
                     </div>
                 ) : (
                     <p className="leading-relaxed text-foreground text-justify">
-                        {content}
+                        {content || 'Nenhum insight disponível no momento.'}
                     </p>
                 )}
             </div>
